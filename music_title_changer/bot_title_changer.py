@@ -27,6 +27,10 @@ if os.path.isfile('.socks5') and os.stat('.socks5').st_size != 0:
     PROXY_URL = open('.socks5', 'r').read()
     REQUEST_KWARGS.update({'proxy_url': PROXY_URL})
 
+if not os.path.isdir('tracks'):
+    os.mkdir('tracks')
+
+
 TRACK, TITLE, PERFORMER, SEND_TRACK = range(4)
 
 
