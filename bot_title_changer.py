@@ -9,16 +9,23 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
+if not os.path.isfile('.token') or os.stat('.token').st_size == 0:
+    print('Add bot token in .token file')
+    raise SystemExit
+
+if not os.path.isfile('.devs') or os.stat('.devs').st_size == 0:
+    print('Add developers ids splitted by whitespace in .devs file')
+    raise SystemExit
+
 TOKEN = open('.token', 'r').read().split()[0]
 DEVS = open('.devs', 'r').read().split()
-REQUEST_KWARGS = {
-    'proxy_url': 'socks5://95.110.194.245:54871',
-    # Optional, if you need authentication:
-    # 'urllib3_proxy_kwargs': {
-    #     'username': 'PROXY_USER',
-    #     'password': 'PROXY_PASS',
-    # }
-}
+
+# proxy format: socks5://95.110.194.245:54871
+REQUEST_KWARGS = {}
+
+if os.path.isfile('.socks5') and os.stat('.socks5').st_size != 0:
+    PROXY_URL = open('.socks5', 'r').read()
+    REQUEST_KWARGS.update({'proxy_url': PROXY_URL})
 
 TRACK, TITLE, PERFORMER, SEND_TRACK = range(4)
 
@@ -72,7 +79,8 @@ def get_performer(update, context):
     log_user(update.message.from_user, 'sent performer of track')
 
     logging.info('Started sending track{}.mp3 to {}'.format(track_id, user))
-    update.message.reply_audio(audio=open('tracks/track{}.mp3'.format(track_id), 'rb'), performer=performer, title=title)
+    update.message.reply_audio(audio=open('tracks/track{}.mp3'.format(track_id), 'rb'), performer=performer,
+                               title=title)
     logging.info('Finished sending track{}.mp3 to {}'.format(track_id, user))
     os.remove('tracks/track{}.mp3'.format(track_id))
     context.user_data.clear()
@@ -92,10 +100,6 @@ def cancel(update, context):
 
 
 def main():
-    # Create the Updater and pass it your bot's token.
-    # Make sure to set use_context=True to use the new context based callbacks
-    # Post version 12 this will no longer be necessary
-
     updater = Updater(token=TOKEN, request_kwargs=REQUEST_KWARGS, use_context=True)
 
     # Get the dispatcher to register handlers
@@ -105,17 +109,6 @@ def main():
     conversation_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start)],
 
-        # states={
-        #     GENDER: [MessageHandler(Filters.regex('^(Boy|Girl|Other)$'), gender)],
-        #
-        #     PHOTO: [MessageHandler(Filters.photo, photo),
-        #             CommandHandler('skip', skip_photo)],
-        #
-        #     LOCATION: [MessageHandler(Filters.location, location),
-        #                CommandHandler('skip', skip_location)],
-        #
-        #     BIO: [MessageHandler(Filters.text, bio)]
-        # },
         states={
             TRACK: [MessageHandler(Filters.audio, download_track)],
             TITLE: [MessageHandler(Filters.text & (~Filters.command('cancel')), get_title)],
