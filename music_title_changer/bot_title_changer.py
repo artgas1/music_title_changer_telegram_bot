@@ -10,21 +10,26 @@ logger = logging.getLogger(__name__)
 
 TRACK, TITLE, PERFORMER, SEND_TRACK = range(4)
 
+
 def log_user(user, text):
     logger.info(f"User {user.username} {text}")
 
-def log_error(text):
-    logger.error(f'{text}')
+
+def log_error(update, text):
+    logger.error(f'Update "{update}" caused error "{text}"')
+
 
 def error_handler(update, context):
-    log_error(context.error)
+    log_error(update, context.error)
     for dev_id in DEVS:
         context.bot.send_message(dev_id, context.error)
+
 
 def start(update, context):
     log_user(update.message.from_user, 'started conversation')
     update.message.reply_text('Send me track')
     return TRACK
+
 
 def download_track(update, context):
     user = update.message.from_user.username
@@ -37,6 +42,7 @@ def download_track(update, context):
     logger.info(f'Finished downloading track{track.file_unique_id}.mp3 from {user}')
     update.message.reply_text('Send me title of track')
     return TITLE
+
 
 def get_title(update, context):
     title = update.message.text
