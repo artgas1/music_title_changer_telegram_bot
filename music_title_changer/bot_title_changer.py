@@ -3,7 +3,7 @@ from telegram.ext import Updater
 import logging
 import os
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+logging.basicConfig(filename='log.txt', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
@@ -105,10 +105,10 @@ def main():
 
 if __name__ == '__main__':
     if not os.path.isfile('.token') or os.stat('.token').st_size == 0:
-        log_error('Add bot token in .token file')
+        print('Add bot token in .token file')
         raise SystemExit
     if not os.path.isfile('.devs') or os.stat('.devs').st_size == 0:
-        log_error('Add developers ids splitted by whitespace in .devs file')
+        print('Add developers ids splitted by whitespace in .devs file')
         raise SystemExit
 
     TOKEN = open('.token', 'r').read().split()[0]
